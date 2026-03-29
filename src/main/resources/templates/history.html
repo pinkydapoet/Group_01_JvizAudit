@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>J-VizAudit – Workspace History</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet" />
+    <style>
+        :root { --bg-base: #0b0f19; --bg-panel: #111827; --border: #1e3a5f; --accent-cyan: #00d4ff; --accent-red: #ff4d6d; --text-primary: #e8f4fd; --text-secondary: #7fa8cc; --font-ui: 'Sora', sans-serif; }
+        body { font-family: var(--font-ui); background: var(--bg-base); color: var(--text-primary); margin: 0; padding: 40px; }
+        .dashboard { max-width: 1000px; margin: 0 auto; background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+        h2 { color: var(--accent-cyan); margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: 14px; }
+        th { color: var(--text-secondary); text-transform: uppercase; font-size: 12px; }
+        .btn-action { padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; border: none; font-weight: 600; text-decoration: none; color: #0b0f19; }
+        .btn-open { background: var(--accent-cyan); margin-right: 8px; }
+        .btn-delete { background: var(--accent-red); color: white; }
+    </style>
+</head>
+<body>
+    <div style="margin-bottom: 20px;">
+        <a th:href="@{/editor}" style="color: var(--text-secondary); text-decoration: none;">← Back to Editor</a>
+    </div>
+
+    <div class="dashboard">
+        <h2>Your Saved Workspaces</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Workspace Name</th>
+                    <th>Language</th>
+                    <th>Last Updated</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="history : ${histories}" th:id="'row-' + ${history.historyId}">
+                    <td th:text="${history.historyName}">Untitled</td>
+                    <td th:text="${history.language}">Java</td>
+                    <td th:text="${#temporals.format(history.updatedAt, 'MMM dd, yyyy HH:mm')}">Date</td>
+                    <td>
+                        <a th:href="@{/editor(id=${history.historyId})}" class="btn-action btn-open">📂 Open</a>
+                        <button class="btn-action btn-open" style="background: #00a8cc;" th:attr="onclick='renameHistory(' + ${history.historyId} + ')'" th:data-name="${history.historyName}">✏️ Rename</button>
+                        <button class="btn-action btn-delete" th:onclick="'deleteHistory(' + ${history.historyId} + ')'">🗑️ Delete</button>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(histories)}">
+                    <td colspan="4" style="text-align: center; color: var(--text-secondary);">No saved workspaces found. Start coding!</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        async function deleteHistory(id) {
+            if (!confirm('Are you sure you want to delete this workspace?')) return;
+            try {
+                const response = await fetch(`/api/history/${id}`, { method: 'DELETE' });
+                if (response.ok) {
+                    document.getElementById(`row-${id}`).remove();
+                    alert('✅ Workspace deleted successfully');
+                } else {
+                    alert('❌ Failed to delete workspace');
+                }
+            } catch(err) {
+                alert('Error: ' + err.message);
+            }
+        }
+
+        async function renameHistory(id) {
+            // Get the current name from the button's data attribute
+            const button = event.target;
+            const currentName = button.getAttribute('data-name') || 'Untitled';
+            
+            const newName = prompt('📝 Enter new name for this workspace:', currentName);
+            if (!newName || newName.trim() === '') {
+                return; // User cancelled
+            }
+            
+            try {
+                const response = await fetch(`/api/history/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ historyName: newName.trim() })
+                });
+                
+                if (response.ok) {
+                    // Update the table cell with new name
+                    const row = document.getElementById(`row-${id}`);
+                    row.querySelector('td').textContent = newName.trim();
+                    // Also update button data attribute
+                    button.setAttribute('data-name', newName.trim());
+                    alert('✅ Workspace renamed successfully');
+                } else {
+                    alert('❌ Failed to rename workspace');
+                }
+            } catch(err) {
+                alert('Error: ' + err.message);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>J-VizAudit – Home</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Sora:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-base:      #0b0f19;
+      --bg-card:      #111827;
+      --bg-card-2:    #1a2236;
+      --border:       #1e3a5f;
+      --accent-cyan:  #00d4ff;
+      --accent-green: #39d98a;
+      --accent-purple:#a855f7;
+      --accent-orange:#ff8c42;
+      --text-primary: #e8f4fd;
+      --text-secondary:#7fa8cc;
+      --text-dim:     #3d5a7a;
+      --font-ui:      'Sora', sans-serif;
+      --font-code:    'JetBrains Mono', monospace;
+      --radius-md:    12px;
+      --radius-lg:    20px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-ui);
+      background: var(--bg-base);
+      color: var(--text-primary);
+      overflow-x: hidden;
+    }
+
+    /* ── Noise overlay ──────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      opacity: 0.5;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Glow orbs ──────────────────────────────────── */
+    .glow-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .glow-1 { width: 600px; height: 600px; top: -200px; left: -200px; background: rgba(0,212,255,0.07); }
+    .glow-2 { width: 500px; height: 500px; bottom: -150px; right: -100px; background: rgba(168,85,247,0.06); }
+
+    /* ── Navbar ─────────────────────────────────────── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      height: 60px;
+      padding: 0 32px;
+      background: rgba(11,15,25,0.85);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .logo-icon {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-code); font-size: 13px; font-weight: 700;
+      color: #0b0f19;
+    }
+    .logo-text { font-size: 18px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.5px; }
+    .logo-text em { font-style: normal; color: var(--accent-cyan); }
+    .spacer { flex: 1; }
+    .nav-links { display: flex; gap: 8px; align-items: center; }
+    .nav-link {
+      padding: 6px 14px; border-radius: 8px;
+      font-size: 13px; font-weight: 600;
+      color: var(--text-secondary); text-decoration: none;
+      transition: all 0.2s;
+    }
+    .nav-link:hover { color: var(--text-primary); background: rgba(255,255,255,0.05); }
+    .btn-launch {
+      padding: 8px 20px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-green));
+      color: #0b0f19; border: none; border-radius: 8px;
+      font-size: 13px; font-weight: 700; cursor: pointer;
+      font-family: var(--font-ui); text-decoration: none;
+      transition: all 0.2s;
+      box-shadow: 0 0 24px rgba(0,212,255,0.25);
+    }
+    .btn-launch:hover { transform: translateY(-1px); box-shadow: 0 0 36px rgba(0,212,255,0.4); }
+
+    /* ── Hero ───────────────────────────────────────── */
+    .hero {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 100px 32px 80px;
+      text-align: center;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 14px;
+      background: rgba(0,212,255,0.08);
+      border: 1px solid rgba(0,212,255,0.2);
+      border-radius: 100px;
+      font-size: 12px; font-weight: 600;
+      color: var(--accent-cyan);
+      margin-bottom: 32px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-green); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    h1 {
+      font-size: clamp(40px, 6vw, 72px);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -2px;
+      margin-bottom: 24px;
+    }
+    h1 .line-accent { color: var(--accent-cyan); }
+    h1 .line-dim { color: var(--text-secondary); }
+    .hero-sub {
+      font-size: clamp(15px, 2vw, 18px);
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto 48px;
+      line-height: 1.7;
+      font-weight: 300;
+    }
+    .hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn-cta {
+      padding: 14px 32px;
+      font-size: 15px; font-weight: 700;
+      border-radius: 10px; border: none;
+      cursor: pointer; font-family: var(--font-ui);
+      text-decoration: none; transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-cta-primary {
+      background: var(--accent-cyan); color: #0b0f19;
+      box-shadow: 0 0 32px rgba(0,212,255,0.3);
+    }
+    .btn-cta-primary:hover { transform: translateY(-2px); box-shadow: 0 0 48px rgba(0,212,255,0.5); }
+    .btn-cta-outline {
+      background: transparent; color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+    .btn-cta-outline:hover { border-color: rgba(0,212,255,0.4); color: var(--accent-cyan); }
+
+    /* ── Preview card ───────────────────────────────── */
+    .preview-wrap {
+      position: relative; z-index: 1;
+      max-width: 1000px; margin: 0 auto 100px;
+      padding: 0 32px;
+    }
+    .preview-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.6), 0 0 60px rgba(0,212,255,0.06);
+    }
+    .preview-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 12px 18px;
+      background: var(--bg-card-2);
+      border-bottom: 1px solid var(--border);
+    }
+    .dot-row { display: flex; gap: 6px; }
+    .dot-r { width: 10px; height: 10px; border-radius: 50%; }
+    .dot-close { background: #ff5f56; }
+    .dot-min   { background: #ffbd2e; }
+    .dot-max   { background: #27c93f; }
+    .preview-url {
+      flex: 1; text-align: center;
+      font-family: var(--font-code); font-size: 11px;
+      color: var(--text-dim);
+    }
+    .preview-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      height: 340px;
+    }
+    .preview-code {
+      border-right: 1px solid var(--border);
+      background: #0d1117;
+      padding: 20px 16px;
+      overflow: hidden;
+    }
+    .preview-code pre { font-family: var(--font-code); font-size: 12px; line-height: 20px; }
+    .kw  { color: #c792ea; }
+    .ty  { color: #82aaff; }
+    .st  { color: #c3e88d; }
+    .fn  { color: #82aaff; }
+    .an  { color: #ffcb6b; }
+    .preview-diagram {
+      background: var(--bg-card);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 12px;
+    }
+    .mini-box {
+      background: var(--bg-card-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-family: var(--font-code);
+      font-size: 11px;
+      color: var(--text-primary);
+      width: 160px;
+    }
+    .mini-box-header {
+      color: var(--accent-cyan);
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .mini-row { color: var(--text-secondary); font-size: 10px; padding: 1px 0; }
+    .mini-arrow {
+      width: 40px; height: 1px;
+      background: linear-gradient(90deg, var(--accent-cyan), transparent);
+      margin-left: 20px;
+      position: relative;
+    }
+    .mini-arrow::after { content: '▶'; position: absolute; right: -8px; top: -6px; font-size: 8px; color: var(--accent-cyan); }
+    .mini-label { font-size: 9px; color: var(--accent-cyan); margin-left: 20px; font-family: var(--font-code); }
+
+    /* ── Features ───────────────────────────────────── */
+    .section { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 32px 100px; }
+    .section-label {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 2px; color: var(--accent-cyan);
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 800; letter-spacing: -1px;
+      margin-bottom: 16px;
+    }
+    .section-sub {
+      font-size: 16px; color: var(--text-secondary);
+      max-width: 520px; line-height: 1.7; font-weight: 300;
+      margin-bottom: 56px;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .feat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 28px;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .feat-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 2px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .feat-card:hover { border-color: rgba(0,212,255,0.3); transform: translateY(-4px); }
+    .feat-card:hover::before { opacity: 1; }
+    .feat-card.c1::before { background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple)); }
+    .feat-card.c2::before { background: linear-gradient(90deg, var(--accent-green), var(--accent-cyan)); }
+    .feat-card.c3::before { background: linear-gradient(90deg, var(--accent-orange), var(--accent-red)); }
+    .feat-icon {
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      margin-bottom: 16px;
+    }
+    .ic1 { background: rgba(0,212,255,0.12); }
+    .ic2 { background: rgba(57,217,138,0.12); }
+    .ic3 { background: rgba(255,140,66,0.12); }
+    .feat-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    .feat-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.7; font-weight: 300; }
+    .feat-tag {
+      display: inline-block; margin-top: 14px;
+      padding: 3px 10px;
+      background: rgba(0,212,255,0.08);
+      border: 1px solid rgba(0,212,255,0.15);
+      border-radius: 100px;
+      font-size: 11px; font-weight: 600;
+      color: var(--accent-cyan);
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+
+    /* ── Footer ─────────────────────────────────────── */
+    footer {
+      position: relative; z-index: 1;
+      border-top: 1px solid var(--border);
+      padding: 32px;
+      text-align: center;
+      font-size: 13px; color: var(--text-dim);
+    }
+    footer strong { color: var(--text-secondary); }
+
+    /* ── Responsive ─────────────────────────────────── */
+    @media (max-width: 700px) {
+      .preview-body { grid-template-columns: 1fr; height: auto; }
+      .preview-code { height: 200px; }
+      .nav-links .nav-link { display: none; }
+    }
+    @media (max-width: 480px) {
+      .hero { padding: 60px 20px 60px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="glow-orb glow-1"></div>
+<div class="glow-orb glow-2"></div>
+
+<!-- ── Navbar ──────────────────────────────────────── -->
+<nav>
+  <a href="Home.html" class="logo">
+    <div class="logo-icon">JV</div>
+    <div class="logo-text">J-<em>VizAudit</em></div>
+  </a>
+  <div class="spacer"></div>
+  <div class="nav-links">
+    <a href="#features" class="nav-link">Features</a>
+    <a href="login.html" class="nav-link">Sign In</a>
+    <a href="Editor.html" class="btn-launch">Launch Editor →</a>
+  </div>
+</nav>
+
+<!-- ── Hero ────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-badge">
+    <div class="badge-dot"></div>
+    Online Java Compiler · Live Visualization
+  </div>
+  <h1>
+    Write Java.<br>
+    <span class="line-accent">See it come alive.</span><br>
+    <span class="line-dim">Understand it instantly.</span>
+  </h1>
+  <p class="hero-sub">
+    J-VizAudit generates UML class diagrams, algorithm flowcharts,
+    and auto-formats your code — in real time, as you type.
+  </p>
+  <div class="hero-actions">
+    <a href="Editor.html" class="btn-cta btn-cta-primary">▶ &nbsp;Open Editor</a>
+    <a href="#features" class="btn-cta btn-cta-outline">Explore Features</a>
+  </div>
+</section>
+
+<!-- ── Preview ─────────────────────────────────────── -->
+<div class="preview-wrap">
+  <div class="preview-card">
+    <div class="preview-bar">
+      <div class="dot-row">
+        <div class="dot-r dot-close"></div>
+        <div class="dot-r dot-min"></div>
+        <div class="dot-r dot-max"></div>
+      </div>
+      <div class="preview-url">localhost:8080 — J-VizAudit Editor</div>
+    </div>
+    <div class="preview-body">
+      <div class="preview-code">
+        <pre><span class="kw">public class</span> <span class="ty">Animal</span> {
+  <span class="kw">private</span> <span class="ty">String</span> name;
+  <span class="kw">private</span> <span class="ty">int</span> age;
+
+  <span class="kw">public</span> <span class="fn">Animal</span>(<span class="ty">String</span> n, <span class="ty">int</span> a) {
+    <span class="kw">this</span>.name = n;
+    <span class="kw">this</span>.age  = a;
+  }
+  <span class="kw">public void</span> <span class="fn">speak</span>() {}
+}
+
+<span class="kw">public class</span> <span class="ty">Dog</span>
+    <span class="kw">extends</span> <span class="ty">Animal</span> {
+  <span class="kw">private</span> <span class="ty">String</span> breed;
+
+  <span class="an">@Override</span>
+  <span class="kw">public void</span> <span class="fn">speak</span>() {
+    System.out.<span class="fn">println</span>(
+      <span class="st">"Woof!"</span>);
+  }
+}</pre>
+      </div>
+      <div class="preview-diagram">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);margin-bottom:4px">UML — Auto Generated</div>
+        <div class="mini-box">
+          <div class="mini-box-header">&lt;&lt;class&gt;&gt; Animal</div>
+          <div class="mini-row">- name : String</div>
+          <div class="mini-row">- age : int</div>
+          <div class="mini-row">+ speak() : void</div>
+        </div>
+        <div class="mini-arrow"></div>
+        <div class="mini-label">extends</div>
+        <div class="mini-box">
+          <div class="mini-box-header">&lt;&lt;class&gt;&gt; Dog</div>
+          <div class="mini-row">- breed : String</div>
+          <div class="mini-row">+ speak() : void</div>
+        </div>
+        <div style="margin-top:8px;font-size:10px;color:var(--accent-green);font-family:var(--font-code)">✔ Updated via WebSocket</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Features ────────────────────────────────────── -->
+<section class="section" id="features">
+  <div class="section-label">Core Features</div>
+  <h2 class="section-title">Three tools.<br>One powerful IDE.</h2>
+  <p class="section-sub">Every feature is designed to help you understand your code visually — not just run it.</p>
+
+  <div class="features-grid">
+    <div class="feat-card c1">
+      <div class="feat-icon ic1">🔷</div>
+      <div class="feat-title">UML Diagram Generator</div>
+      <div class="feat-desc">Automatically generates UML class diagrams from your code. Supports OOP constructs like inheritance, interfaces, and built-in Java types.</div>
+      <div class="feat-tag">New Feature</div>
+    </div>
+    <div class="feat-card c2">
+      <div class="feat-icon ic2">🔀</div>
+      <div class="feat-title">Algorithm Flowchart</div>
+      <div class="feat-desc">Converts if/else, for, while, and switch structures into clear flowcharts. See the logic of your algorithm at a glance.</div>
+      <div class="feat-tag">New Feature</div>
+    </div>
+    <div class="feat-card c3">
+      <div class="feat-icon ic3">✨</div>
+      <div class="feat-title">Code Formatter</div>
+      <div class="feat-desc">One-click Java code formatting using JavaParser. Corrects indentation, spacing, and brace placement to match standard Java conventions.</div>
+      <div class="feat-tag">New Feature</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ──────────────────────────────────────── -->
+<footer>
+  <strong>J-VizAudit</strong> &nbsp;·&nbsp; Group 1 — Software Engineering 2 &nbsp;·&nbsp;
+  Phan Hoàng · Việt Hồng · Ngọc Ánh · Sơn Nguyên &nbsp;·&nbsp; 2026
+</footer>
+
+</body>
+</html>

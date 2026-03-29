@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>J-VizAudit – Sign In</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root { --bg-base: #0b0f19; --bg-panel: #111827; --border: #1e3a5f; --accent-cyan: #00d4ff; --text-primary: #e8f4fd; --text-secondary: #7fa8cc; --font-ui: 'Sora', sans-serif; }
+    body { font-family: var(--font-ui); background: var(--bg-base); color: var(--text-primary); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+    .auth-card { background: var(--bg-panel); padding: 40px; border-radius: 12px; border: 1px solid var(--border); width: 100%; max-width: 400px; }
+    h2 { text-align: center; margin-bottom: 24px; color: var(--accent-cyan); }
+    .input-group { margin-bottom: 20px; }
+    .input-group label { display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; }
+    .input-group input { width: 100%; padding: 12px; background: var(--bg-base); border: 1px solid var(--border); border-radius: 8px; color: white; outline: none; box-sizing: border-box; }
+    .btn { width: 100%; padding: 12px; background: var(--accent-cyan); color: #0b0f19; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 10px; }
+    .link { display: block; text-align: center; margin-top: 16px; font-size: 12px; color: var(--text-secondary); text-decoration: none; }
+    .error { color: #ff4d6d; font-size: 12px; text-align: center; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <div class="auth-card">
+    <h2>Sign In to J-VizAudit</h2>
+    
+    <div th:if="${param.error}" class="error">Invalid username or password.</div>
+    <div th:if="${param.logout}" class="error" style="color: var(--accent-green);">You have been logged out.</div>
+    
+    <form th:action="@{/login}" method="post">
+        <div class="input-group">
+          <label>Email Address</label>
+          <input type="email" name="email" placeholder="student@university.edu" required />
+        </div>
+        <div class="input-group">
+          <label>Password</label>
+          <input type="password" name="password" placeholder="••••••••" required />
+        </div>
+        <button type="submit" class="btn">Login</button>
+    </form>
+    
+    <a th:href="@{/registration}" class="link">Don't have an account? Sign Up</a>
+    <a th:href="@{/}" class="link" style="margin-top: 8px;">← Back to Home</a>
+  </div>
+</body>
+</html>
