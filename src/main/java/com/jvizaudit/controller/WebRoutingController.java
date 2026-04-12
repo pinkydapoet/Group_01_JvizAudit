@@ -58,8 +58,10 @@ public class WebRoutingController {
 
     @PostMapping("/api/execute")
     @ResponseBody
-    public String execute(@RequestBody String code) {
-        return executor.runCode(code);
+    public String execute(@RequestBody Map<String, String> payload) {
+        String code = payload.get("code");
+        String input = payload.getOrDefault("input", "");
+        return executor.runCode(code, input);
     }
 
     @GetMapping("/api/user")
@@ -156,5 +158,46 @@ public class WebRoutingController {
 
         // Redirect to login page with a success flag
         return "redirect:/login?success";
+    }
+    @GetMapping("/profile")
+    public String profilePage(Model model, Principal principal) {
+        if (principal == null) return "redirect:/login";
+        User u = userRepo.findByEmail(principal.getName()).orElse(null);
+        if (u == null) return "redirect:/login";
+        
+        model.addAttribute("user", u);
+        return "profile";
+    }
+
+    @PostMapping("/profile/password")
+    public String changePassword(@RequestParam String oldPassword, @RequestParam String newPassword, 
+                                 Principal principal, org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
+        if (principal == null) return "redirect:/login";
+        User u = userRepo.findByEmail(principal.getName()).orElse(null);
+        
+        if (u != null && passwordEncoder.matches(oldPassword, u.getPasswordHash())) {
+            u.setPasswordHash(passwordEncoder.encode(newPassword));
+            userRepo.save(u);
+            redirectAttributes.addFlashAttribute("success", "Password updated successfully!");
+        } else {
+            redirectAttributes.addFlashAttribute("error", "Incorrect old password. Please try again.");
+        }
+        return "redirect:/profile";
+    }
+
+    @PostMapping("/profile/delete")
+    public String deleteAccount(Principal principal, jakarta.servlet.http.HttpServletRequest request) {
+        if (principal == null) return "redirect:/login";
+        User u = userRepo.findByEmail(principal.getName()).orElse(null);
+        
+        if (u != null) {
+            historyRepo.deleteAll(historyRepo.findByUser_UserIdOrderByUpdatedAtDesc(u.getUserId()));
+            userRepo.delete(u);
+            try {
+                request.logout();
+            } catch (jakarta.servlet.ServletException e) {
+            }
+        }
+        return "redirect:/login?logout";
     }
 }
