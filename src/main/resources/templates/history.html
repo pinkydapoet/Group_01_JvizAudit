@@ -16,6 +16,7 @@
         .btn-action { padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; border: none; font-weight: 600; text-decoration: none; color: #0b0f19; }
         .btn-open { background: var(--accent-cyan); margin-right: 8px; }
         .btn-delete { background: var(--accent-red); color: white; }
+        .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
     </style>
 </head>
 <body>
@@ -25,6 +26,7 @@
 
     <div class="dashboard">
         <h2>Your Saved Workspaces</h2>
+        <div class="table-responsive">
         <table>
             <thead>
                 <tr>
@@ -51,7 +53,7 @@
             </tbody>
         </table>
     </div>
-
+</div>
     <script>
         async function deleteHistory(id) {
             if (!confirm('Are you sure you want to delete this workspace?')) return;
