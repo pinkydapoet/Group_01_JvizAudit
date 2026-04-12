@@ -24,7 +24,7 @@
     html, body { height: 100%; overflow: hidden; }
     body { font-family: var(--font-ui); background: var(--bg-base); color: var(--text-primary); display: flex; flex-direction: column; font-size: 14px; }
     
-    /* Navbar & Toolbar */
+    /* Navbar */
     .navbar { display: flex; align-items: center; height: 52px; padding: 0 20px; background: var(--bg-panel); border-bottom: 1px solid var(--border); gap: 16px; flex-shrink: 0; z-index: 100; }
     .navbar-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; }
     .logo-icon { width: 28px; height: 28px; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 13px; font-family: var(--font-code); font-weight: 600; color: var(--bg-base); }
@@ -35,27 +35,25 @@
     .nav-tab:hover { color: var(--text-primary); background: var(--bg-hover); }
     .nav-tab.active { color: var(--accent-cyan); background: rgba(0,212,255,0.08); }
     .navbar-spacer { flex: 1; }
-    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; border: none; font-family: var(--font-ui); }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; border: none; font-family: var(--font-ui); text-decoration: none; }
     .btn-primary { background: var(--accent-green); color: var(--bg-base); }
     .btn-secondary { background: rgba(0,212,255,0.1); color: var(--accent-cyan); border: 1px solid rgba(0,212,255,0.25); }
     .btn-ghost { background: transparent; color: var(--text-secondary); border: 1px solid var(--border); }
+    .btn-ghost:hover { background: var(--bg-hover); color: var(--text-primary); }
     
     /* Layout */
     .workspace { display: flex; flex: 1; overflow: hidden; }
-    .sidebar { width: 240px; background: var(--bg-panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
-    .sidebar-header { padding: 16px 12px; border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); }
-    .sidebar-content { flex: 1; overflow-y: auto; padding: 8px 0; }
-    .sidebar-item { padding: 8px 12px; color: var(--text-secondary); font-size: 13px; cursor: pointer; }
-    .sidebar-item:hover { background: var(--bg-hover); color: var(--text-primary); }
-    .sidebar-section { padding: 12px; border-top: 1px solid var(--border); }
-    .user-detail { display: flex; flex-direction: column; gap: 8px; padding: 12px; background: var(--bg-panel-2); border-radius: var(--radius-sm); }
-    .user-detail-item { font-size: 12px; color: var(--text-secondary); }
     .pane-container { display: flex; flex: 1; overflow: hidden; }
+    
+    /* Cột Trái: Code Editor + Console */
     .editor-pane { display: flex; flex-direction: column; width: 50%; border-right: 1px solid var(--border); }
     .code-editor { flex: 1; position: relative; background: var(--bg-base); }
-    .output-pane { height: 130px; border-top: 1px solid var(--border); background: var(--bg-panel); display: flex; flex-direction: column; }
+    .output-pane { height: 180px; border-top: 1px solid var(--border); background: var(--bg-panel); display: flex; flex-direction: column; }
+    .output-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 14px; background: var(--bg-panel-2); border-bottom: 1px solid var(--border); }
     .output-content { flex: 1; overflow-y: auto; padding: 10px 14px; font-family: var(--font-code); font-size: 12px; color: var(--text-secondary); }
     .out-success { color: var(--accent-green); } .out-err { color: var(--accent-red); } .out-info { color: var(--accent-cyan); } .out-warn { color: #ffa500; }
+    
+    /* Cột Phải: UML & Flowchart */
     .right-panel { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
     .viz-tabs { display: flex; align-items: center; border-bottom: 1px solid var(--border); background: var(--bg-panel); }
     .viz-tab { padding: 10px 18px; font-size: 12px; font-weight: 600; color: var(--text-secondary); cursor: pointer; text-decoration: none; text-transform: uppercase; border-bottom: 2px solid transparent; }
@@ -65,9 +63,7 @@
     .viz-container { display: none; width: 100%; height: 100%; padding: 20px; overflow: auto; }
     .viz-container.active { display: block; }
     
-    /* Line highlighting styles for Monaco Editor */
     .highlighted-line { background-color: rgba(255, 200, 0, 0.2) !important; }
-    
     .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent-green); animation: pulse 2s infinite; }
     @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
   </style>
@@ -85,46 +81,39 @@
   
   <div class="navbar-spacer"></div>
   
-  <button class="btn btn-ghost" id="userBtn" style="border:none; margin-right: 10px;">👤 Profile</button>
+  <a th:href="@{/profile}" class="btn btn-ghost" style="border:none; margin-right: 10px;">👤 Profile</a>
   
   <form th:action="@{/logout}" method="post" style="display:inline;">
       <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-      <button type="submit" class="btn btn-ghost" style="border:none; margin-right: 10px;">🚪 Sign Out</button>
+      <button type="submit" class="btn btn-ghost" style="border:none;">🚪 Sign Out</button>
   </form>
-  
-  <button class="btn btn-ghost" id="saveBtn"><span>💾</span> <span>Save</span></button>
-  <button class="btn btn-secondary" id="formatBtn"><span>⚙</span> <span>Format</span></button>
-  <button class="btn btn-primary" id="runBtn"><span>▶</span> <span>Run</span></button>
 </nav>
 
 <div class="workspace">
-  <!-- Left Sidebar -->
-  <div class="sidebar">
-    <div class="sidebar-header">Workspace</div>
-    <div class="sidebar-content">
-      <div class="sidebar-item">📁 Recent Files</div>
-      <div class="sidebar-item">🔍 Search</div>
-      <div class="sidebar-item">⭐ Favorites</div>
-    </div>
-    
-    <div class="sidebar-section">
-      <div class="user-detail">
-        <div class="user-detail-item"><strong>User Details</strong></div>
-        <div class="user-detail-item" id="userEmail">Email: Loading...</div>
-        <div class="user-detail-item" id="userRole">Role: Loading...</div>
-        <button class="btn btn-ghost" id="viewProfileBtn" style="width: 100%; margin-top: 8px; font-size: 11px; padding: 6px;">View Profile</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Main Content -->
   <div class="pane-container">
+    
     <div class="editor-pane">
       <div class="code-editor" id="editor-container"></div>
       
       <div class="output-pane">
-        <div style="padding: 5px 14px; background: var(--bg-panel-2); font-size: 11px; font-weight: 600; border-bottom: 1px solid var(--border); color: var(--text-secondary);">Output / Console</div>
-        <div class="output-content"></div>
+        <div class="output-header">
+            <div style="font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;">Console / Terminal</div>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn btn-ghost" id="saveBtn" style="padding: 5px 12px; font-size: 11px;"><span>💾</span> Save</button>
+                <button class="btn btn-secondary" id="formatBtn" style="padding: 5px 12px; font-size: 11px;"><span>⚙</span> Format</button>
+                <button class="btn btn-primary" id="runBtn" style="padding: 5px 12px; font-size: 11px;"><span>▶</span> Run</button>
+            </div>
+        </div>
+        <div style="display: flex; flex: 1; overflow: hidden;">
+            <div style="flex: 1; border-right: 1px solid var(--border); display: flex; flex-direction: column;">
+                <div style="font-size: 10px; color: var(--text-dim); padding: 4px 14px; background: var(--bg-panel-2);">INPUT (STDIN)</div>
+                <textarea id="stdInput" style="flex: 1; background: var(--bg-base); color: var(--text-primary); border: none; padding: 10px 14px; font-family: var(--font-code); font-size: 12px; resize: none; outline: none;" placeholder="Enter inputs here (e.g., numbers for Scanner) before running..."></textarea>
+            </div>
+            <div style="flex: 2; display: flex; flex-direction: column;">
+                <div style="font-size: 10px; color: var(--text-dim); padding: 4px 14px; background: var(--bg-panel-2);">OUTPUT (STDOUT)</div>
+                <div class="output-content" style="flex: 1; overflow-y: auto; padding: 10px 14px; font-family: var(--font-code); font-size: 12px; color: var(--text-secondary);"></div>
+            </div>
+        </div>
       </div>
     </div>
 
@@ -139,27 +128,20 @@
       </div>
 
       <div class="viz-area">
-        <div id="uml-container" class="viz-container active" style="width: 100%; height: 100%; padding: 20px; overflow: auto;">
-            <p style="color: var(--text-dim); text-align: center; margin-top: 40px;">
-                Start typing Java code to generate UML diagram...
-            </p>
+        <div id="uml-container" class="viz-container active">
+            <p style="color: var(--text-dim); text-align: center; margin-top: 40px;">Start typing Java code to generate UML diagram...</p>
         </div>
-        <div id="flowchart-container" class="viz-container" style="width: 100%; height: 100%; padding: 20px; overflow: auto;">
-            <p style="color: var(--text-dim); text-align: center; margin-top: 40px;">
-                Start typing Java code to generate flowchart...
-            </p>
+        <div id="flowchart-container" class="viz-container">
+            <p style="color: var(--text-dim); text-align: center; margin-top: 40px;">Start typing Java code to generate flowchart...</p>
         </div>
       </div>
     </div>
+    
   </div>
 </div>
 
 <script th:inline="javascript">
-    // Initialize Mermaid with click handlers
     mermaid.initialize({ startOnLoad: false, theme: 'dark' });
-
-    // Store metadata from diagrams for click handlers
-    let diagramMetadata = {};
 
     async function renderDiagram(containerId, syntax) {
         const container = document.getElementById(containerId);
@@ -167,320 +149,103 @@
         try {
             const { svg } = await mermaid.render('svg-' + Date.now(), syntax);
             container.innerHTML = svg;
-            
-            setTimeout(() => {
-                const svgElements = container.querySelectorAll('[data-id]');
-                svgElements.forEach(el => {
-                    el.style.cursor = 'pointer';
-                    el.addEventListener('click', (e) => {
-                        handleDiagramNodeClick(el, containerId);
-                    });
-                    el.addEventListener('mouseover', () => {
-                        el.style.opacity = '0.8';
-                    });
-                    el.addEventListener('mouseout', () => {
-                        el.style.opacity = '1';
-                    });
-                });
-            }, 100);
         } catch (e) {
             container.innerHTML = '<p style="color: var(--text-dim); text-align: center; margin-top: 40px;">Generating diagram...</p>';
         }
     }
 
-    function handleDiagramNodeClick(element, containerId) {
-        const nodeId = element.getAttribute('data-id');
-        console.log('Clicked node:', nodeId);
-        
-        if (!globalEditor || !nodeId) return;
-        
-        const code = globalEditor.getValue();
-        const lines = code.split('\n');
-        let lineNumber = null;
-        
-        // Try to find method ID (M followed by digits)
-        if (nodeId.match(/^M(\d+)$/)) {
-            lineNumber = parseInt(nodeId.match(/M(\d+)/)[1]);
-        } else {
-            // Try to find class name or method name in code
-            const cleanId = nodeId.replace(/[^a-zA-Z0-9_]/g, '');
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i];
-                // Match "class ClassName" or "public void methodName()"
-                if (line.includes('class ' + cleanId) || 
-                    line.includes('void ' + cleanId) ||
-                    line.includes('public ' + cleanId)) {
-                    lineNumber = i + 1;
-                    break;
-                }
-            }
-        }
-        
-        if (lineNumber) {
-            highlightCodeLine(lineNumber);
-            globalEditor.revealLineInCenter(lineNumber);
-            globalEditor.setSelection(new monaco.Range(lineNumber, 1, lineNumber, 1));
-            console.log('✅ Highlighted line:', lineNumber);
-        } else {
-            console.warn('⚠️ Could not find line for node:', nodeId);
-        }
-    }
-
-    function highlightCodeLine(lineNumber) {
-        if (!globalEditor) return;
-        globalEditor.deltaDecorations(globalEditor.getModel().getAllDecorations().map(d => d.id), []);
-        const newDecoration = [{
-            range: new monaco.Range(lineNumber, 1, lineNumber, 1),
-            options: {
-                isWholeLine: true,
-                className: 'highlighted-line',
-                backgroundColor: 'rgba(255, 200, 0, 0.2)',
-                borderLeft: '4px solid #FFD700'
-            }
-        }];
-        globalEditor.deltaDecorations([], newDecoration);
-    }
-
-    // Diagram Tab Switching
     document.querySelectorAll('.viz-tab').forEach(tab => {
         tab.addEventListener('click', (e) => {
             e.preventDefault();
             document.querySelectorAll('.viz-tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.viz-container').forEach(c => c.classList.remove('active'));
-            
             tab.classList.add('active');
-            const tabName = tab.dataset.tab;
-            const container = document.getElementById(tabName + '-container');
-            if (container) {
-                container.classList.add('active');
-            }
+            document.getElementById(tab.dataset.tab + '-container').classList.add('active');
         });
     });
 
-    // Global editor reference and publish function
     let globalEditor = null;
     let stompClient = null;
 
-    // Function to publish code for diagram generation
     function publishCodeForDiagrams() {
         if (!globalEditor || !stompClient || !stompClient.connected) {
-            console.warn('⚠️ Editor or WebSocket not ready - will retry in 500ms');
-            // Retry after waiting for WebSocket to connect
-            setTimeout(() => {
-                if (globalEditor && stompClient && stompClient.connected) {
-                    publishCodeForDiagrams();
-                }
-            }, 500);
+            setTimeout(() => { if (globalEditor && stompClient && stompClient.connected) publishCodeForDiagrams(); }, 500);
             return;
         }
         const code = globalEditor.getValue();
         if (code && code.trim().length > 0) {
-            console.log('📤 Publishing code (' + code.length + ' chars) for diagram generation');
-            stompClient.publish({
-                destination: '/app/code.update',
-                body: code
-            });
-        } else {
-            console.warn('⚠️ No code to publish');
+            stompClient.publish({ destination: '/app/code.update', body: code });
         }
     }
 
-    // Connect WebSockets with better error handling
-    let flowchartData = null;
     stompClient = new StompJs.Client({
         webSocketFactory: () => new SockJS('/ws-jvizaudit'),
         reconnectDelay: 5000,
-        heartbeatIncoming: 4000,
-        heartbeatOutgoing: 4000,
         onConnect: () => {
-            console.log('✓ WebSocket Connected!');
-            console.log('📋 Subscribing to /user/queue/uml and /user/queue/flowchart');
             document.getElementById('ws-status').style.background = 'var(--accent-green)';
-            
-            const umlSub = stompClient.subscribe('/user/queue/uml', (msg) => {
-                console.log('✅ MESSAGE RECEIVED on /user/queue/uml');
-                console.log('📊 UML Diagram received, length:', msg.body.length);
-                console.log('📊 Content preview:', msg.body.substring(0, 100) + '...');
-                if (!msg.body || msg.body.trim().length === 0) {
-                    console.error('❌ Received empty UML message!');
-                    return;
-                }
-                renderDiagram('uml-container', msg.body);
-            });
-            
-            const fcSub = stompClient.subscribe('/user/queue/flowchart', (msg) => {
-                console.log('✅ MESSAGE RECEIVED on /user/queue/flowchart');
-                console.log('📈 Flowchart received, length:', msg.body.length);
-                console.log('📈 Content preview:', msg.body.substring(0, 100) + '...');
-                if (!msg.body || msg.body.trim().length === 0) {
-                    console.error('❌ Received empty Flowchart message!');
-                    return;
-                }
-                flowchartData = msg.body;
-                renderDiagram('flowchart-container', msg.body);
-            });
-            
-            console.log('✓ Subscriptions established:', umlSub, fcSub);
-            
-            // Publish initial code after WebSocket connects
-            setTimeout(() => {
-                console.log('📤 Publishing initial code after WebSocket connection');
-                publishCodeForDiagrams();
-            }, 200);
+            stompClient.subscribe('/user/queue/uml', (msg) => { if(msg.body) renderDiagram('uml-container', msg.body); });
+            stompClient.subscribe('/user/queue/flowchart', (msg) => { if(msg.body) renderDiagram('flowchart-container', msg.body); });
+            setTimeout(publishCodeForDiagrams, 200);
         },
-        onStompError: (frame) => {
-             console.error('✗ WebSocket STOMP Error:', frame);
-             document.getElementById('ws-status').style.background = 'var(--accent-red)';
-        },
-        onWebSocketError: (error) => {
-             console.error('✗ WebSocket Connection Error:', error);
-             document.getElementById('ws-status').style.background = 'var(--accent-red)';
-        }
+        onStompError: () => document.getElementById('ws-status').style.background = 'var(--accent-red)',
+        onWebSocketError: () => document.getElementById('ws-status').style.background = 'var(--accent-red)'
     });
     stompClient.activate();
 
-    // Console Helper
     function appendOutput(text, className = '') {
         const out = document.querySelector('.output-content');
         out.innerHTML += `<div class="${className}"><pre style="margin:0; font-family:inherit;">${text}</pre></div>`;
         out.scrollTop = out.scrollHeight;
     }
 
-    // Load User Details
-    async function loadUserDetails() {
-        try {
-            const response = await fetch('/api/user', { method: 'GET' });
-            if (response.ok) {
-                const user = await response.json();
-                document.getElementById('userEmail').textContent = 'Email: ' + user.email;
-                document.getElementById('userRole').textContent = 'Role: ' + user.role;
-            }
-        } catch (e) {
-            console.log('Could not load user details:', e);
-        }
-    }
-    loadUserDetails();
-
-    // Setup Monaco Editor
     require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' }});
     require(['vs/editor/editor.main'], function() {
-        
         let savedCode = /*[[${code}]]*/ null;
-        if (!savedCode) {
-            savedCode = "public class Main {\n  public static void main(String[] args) {\n    System.out.println(\"Hello J-VizAudit!\");\n  }\n}";
-        }
+        if (!savedCode) savedCode = "public class Main {\n  public static void main(String[] args) {\n    System.out.println(\"Hello J-VizAudit!\");\n  }\n}";
 
         globalEditor = monaco.editor.create(document.getElementById('editor-container'), {
-            value: savedCode,
-            language: 'java',
-            theme: 'vs-dark',
-            minimap: { enabled: false },
-            fontSize: 13
+            value: savedCode, language: 'java', theme: 'vs-dark', minimap: { enabled: false }, fontSize: 13
         });
 
-        // Automatic diagram generation on code change (Debounced)
         let typingTimer;
         globalEditor.onDidChangeModelContent(() => {
             clearTimeout(typingTimer);
-            typingTimer = setTimeout(() => {
-                publishCodeForDiagrams();
-            }, 500);
+            typingTimer = setTimeout(publishCodeForDiagrams, 500);
         });
-        
-        // Publish initial code - wait for WebSocket to be ready
-        console.log('📋 Editor created, waiting for WebSocket connection...');
-        
-        let waitAttempts = 0;
-        let waitInterval = setInterval(() => {
-            waitAttempts++;
-            
-            if (stompClient && stompClient.connected) {
-                console.log('📤 WebSocket ready! Publishing initial code for diagrams');
-                clearInterval(waitInterval);
-                publishCodeForDiagrams();
-            } else if (waitAttempts > 16) {
-                // 16 * 300ms = ~5 seconds timeout
-                console.error('❌ WebSocket connection timeout - attempting to publish anyway');
-                clearInterval(waitInterval);
-                publishCodeForDiagrams();
-            }
-        }, 300);
 
-        // Format
         document.getElementById('formatBtn').addEventListener('click', async () => {
             appendOutput('▶ Formatting...', 'out-info');
-            const res = await fetch('/api/format', {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain' },
-                body: globalEditor.getValue()
-            });
-            if(res.ok) {
-                const formatted = await res.text();
-                globalEditor.setValue(formatted);
-                appendOutput('✓ Formatting complete!', 'out-success');
-            } else {
-                appendOutput('✗ Formatting failed', 'out-err');
-            }
+            const res = await fetch('/api/format', { method: 'POST', body: globalEditor.getValue() });
+            if(res.ok) { globalEditor.setValue(await res.text()); appendOutput('✓ Formatting complete!', 'out-success'); }
+            else appendOutput('✗ Formatting failed', 'out-err');
         });
 
-        // Run
         document.getElementById('runBtn').addEventListener('click', async () => {
             document.querySelector('.output-content').innerHTML = '';
-            appendOutput('▶ Running in secure container...', 'out-info');
+            appendOutput('▶ Running...', 'out-info');
             
-            const res = await fetch('/api/execute', {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain' },
-                body: globalEditor.getValue()
+            const codeVal = globalEditor.getValue();
+            const inputVal = document.getElementById('stdInput').value;
+            
+            const res = await fetch('/api/execute', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: codeVal, input: inputVal }) 
             });
-            if(res.ok) {
-                const output = await res.text();
-                appendOutput(output, 'out-success');
-            } else {
-                appendOutput('✗ Server Error', 'out-err');
-            }
+            
+            if(res.ok) appendOutput(await res.text(), 'out-success');
+            else appendOutput('✗ Server Error', 'out-err');
         });
         
-        // Save
         document.getElementById('saveBtn').addEventListener('click', async () => {
-            // Prompt user for history name
             const historyName = prompt('📝 Enter a name for this workspace:', 'My Code - ' + new Date().toLocaleString());
-            if (!historyName || historyName.trim() === '') {
-                appendOutput('⚠️ Save cancelled - no name provided', 'out-warn');
-                return;
-            }
-            
-            const code = globalEditor.getValue();
-            if (!code || code.trim().length === 0) {
-                appendOutput('✗ Cannot save empty workspace', 'out-err');
-                return;
-            }
-            
-            try {
-                console.log('💾 Saving history:', { historyName, length: code.length });
-                const res = await fetch('/api/history', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sourceCode: code, historyName: historyName.trim() })
-                });
-                
-                const text = await res.text();
-                console.log('📤 Save response:', text);
-                
-                if(res.ok && text.includes('Saved')) {
-                    appendOutput('✅ Workspace "' + historyName + '" saved successfully!', 'out-success');
-                } else {
-                    appendOutput('✗ Failed to save: ' + text, 'out-err');
-                }
-            } catch(err) {
-                console.error('❌ Save error:', err);
-                appendOutput('✗ Save error: ' + err.message, 'out-err');
-            }
-        });
-
-        // Profile Button
-        document.getElementById('userBtn').addEventListener('click', () => {
-            alert('User profile page will be implemented soon!');
+            if (!historyName || !historyName.trim()) return;
+            const res = await fetch('/api/history', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sourceCode: globalEditor.getValue(), historyName: historyName.trim() })
+            });
+            if(res.ok && (await res.text()).includes('Saved')) appendOutput('✅ Workspace saved!', 'out-success');
+            else appendOutput('✗ Failed to save', 'out-err');
         });
     });
 </script>
