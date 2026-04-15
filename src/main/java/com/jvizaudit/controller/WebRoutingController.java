@@ -141,13 +141,11 @@ public class WebRoutingController {
 
     @PostMapping("/registration")
     public String registerUser(@ModelAttribute UserDto userDto, Model model) {
-        // Prevent duplicate emails
         if (userRepo.findByEmail(userDto.getEmail()).isPresent()) {
             model.addAttribute("error", "There is already an account registered with that email.");
             return "registration";
         }
 
-        // Map DTO to User Entity
         User newUser = new User();
         newUser.setUsername(userDto.getUsername());
         newUser.setEmail(userDto.getEmail());
@@ -156,7 +154,6 @@ public class WebRoutingController {
 
         userRepo.save(newUser);
 
-        // Redirect to login page with a success flag
         return "redirect:/login?success";
     }
     @GetMapping("/profile")
