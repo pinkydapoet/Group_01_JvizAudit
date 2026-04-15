@@ -17,7 +17,7 @@ public class CodeExecutionService {
 
     public String runCode(String code, String input) {
         try {
-            // Bước 1: Trích xuất tên class động bằng Regex
+            // Trích xuất tên class động bằng Regex
             String className = "Main"; 
             Matcher matcher = Pattern.compile("public\\s+class\\s+([A-Za-z0-9_]+)").matcher(code);
             if (matcher.find()) {
@@ -33,7 +33,7 @@ public class CodeExecutionService {
             File src = new File(temp, className + ".java");
             Files.writeString(src.toPath(), code);
             
-            // Bước 2: Compile
+            // Compile
             boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
             ProcessBuilder compileBuilder = new ProcessBuilder();
             compileBuilder.directory(temp);
@@ -51,7 +51,7 @@ public class CodeExecutionService {
                 return "Compilation Error:\n" + new String(compileProcess.getInputStream().readAllBytes());
             }
             
-            // Bước 3: Run
+            // Run
             ProcessBuilder runBuilder = new ProcessBuilder();
             runBuilder.directory(temp);
             runBuilder.redirectErrorStream(true);
