@@ -1,4 +1,5 @@
 package com.jvizaudit.controller;
+
 import com.jvizaudit.entity.CodeHistory;
 import com.jvizaudit.entity.User;
 import com.jvizaudit.repository.CodeHistoryRepository;
@@ -39,13 +40,10 @@ public class WebRoutingController {
 
     @GetMapping("/history")
     public String history(Model model, Principal principal) {
-        if (principal == null) {
-            return "redirect:/login";
-        }
+        if (principal == null) return "redirect:/login";
         User u = userRepo.findByEmail(principal.getName()).orElse(null);
-        if (u == null) {
-            return "redirect:/login";
-        }
+        if (u == null) return "redirect:/login";
+        
         model.addAttribute("histories", historyRepo.findByUser_UserIdOrderByUpdatedAtDesc(u.getUserId()));
         return "history";
     }
@@ -58,10 +56,18 @@ public class WebRoutingController {
 
     @PostMapping("/api/execute")
     @ResponseBody
-    public String execute(@RequestBody Map<String, String> payload) {
-        String code = payload.get("code");
-        String input = payload.getOrDefault("input", "");
-        return executor.runCode(code, input);
+    public String execute(@RequestBody Map<String, Object> payload) {
+        String input = (String) payload.getOrDefault("input", "");
+        
+        if (payload.containsKey("files")) {
+            @SuppressWarnings("unchecked")
+            Map<String, String> files = (Map<String, String>) payload.get("files");
+            String mainClass = (String) payload.getOrDefault("mainClass", "Main");
+            return executor.runWorkspace(files, mainClass, input);
+        } else {
+            String code = (String) payload.get("code");
+            return executor.runCode(code, input);
+        }
     }
 
     @GetMapping("/api/user")
@@ -86,7 +92,7 @@ public class WebRoutingController {
             CodeHistory history = new CodeHistory();
             history.setUser(u);
             history.setSourceCode(payload.get("sourceCode"));
-            history.setHistoryName(payload.getOrDefault("historyName", "Untitled"));
+            history.setHistoryName(payload.getOrDefault("historyName", "Untitled Project"));
             history.setStatus("Active");
             historyRepo.save(history);
             return "Saved";
@@ -141,30 +147,26 @@ public class WebRoutingController {
 
     @PostMapping("/registration")
     public String registerUser(@ModelAttribute UserDto userDto, Model model) {
-        // Prevent duplicate emails
         if (userRepo.findByEmail(userDto.getEmail()).isPresent()) {
             model.addAttribute("error", "There is already an account registered with that email.");
             return "registration";
         }
-
-        // Map DTO to User Entity
         User newUser = new User();
         newUser.setUsername(userDto.getUsername());
         newUser.setEmail(userDto.getEmail());
-        newUser.setRole(userDto.getRole().toLowerCase()); // 'student' or 'instructor'
+        newUser.setRole(userDto.getRole().toLowerCase());
         newUser.setPasswordHash(passwordEncoder.encode(userDto.getPassword()));
 
         userRepo.save(newUser);
-
-        // Redirect to login page with a success flag
         return "redirect:/login?success";
     }
+
+    // --- PROFILE ROUTES --- //
     @GetMapping("/profile")
     public String profilePage(Model model, Principal principal) {
         if (principal == null) return "redirect:/login";
         User u = userRepo.findByEmail(principal.getName()).orElse(null);
         if (u == null) return "redirect:/login";
-        
         model.addAttribute("user", u);
         return "profile";
     }
@@ -193,10 +195,7 @@ public class WebRoutingController {
         if (u != null) {
             historyRepo.deleteAll(historyRepo.findByUser_UserIdOrderByUpdatedAtDesc(u.getUserId()));
             userRepo.delete(u);
-            try {
-                request.logout();
-            } catch (jakarta.servlet.ServletException e) {
-            }
+            try { request.logout(); } catch (jakarta.servlet.ServletException e) {}
         }
         return "redirect:/login?logout";
     }

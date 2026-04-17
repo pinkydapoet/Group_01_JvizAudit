@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>J-VizAudit – Editor</title>
+  <title>J-VizAudit – Workspace Editor</title>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet" />
   
   <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
@@ -21,12 +21,14 @@
       --radius-sm: 6px; --radius-md: 10px; --transition: all 0.2s ease;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    /* Cấu hình mặc định cho Desktop (PC) */
     html, body { height: 100%; overflow: hidden; }
     body { font-family: var(--font-ui); background: var(--bg-base); color: var(--text-primary); display: flex; flex-direction: column; font-size: 14px; }
     
     /* Navbar */
     .navbar { display: flex; align-items: center; height: 52px; padding: 0 15px; background: var(--bg-panel); border-bottom: 1px solid var(--border); gap: 12px; flex-shrink: 0; z-index: 100; overflow-x: auto; white-space: nowrap; }
-    .navbar::-webkit-scrollbar { display: none; } /* Ẩn thanh cuộn trên mobile */
+    .navbar::-webkit-scrollbar { display: none; }
     .navbar-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; flex-shrink: 0; }
     .logo-icon { width: 28px; height: 28px; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 13px; font-family: var(--font-code); font-weight: 600; color: var(--bg-base); }
     .logo-text { font-size: 16px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.5px; }
@@ -42,18 +44,43 @@
     .btn-ghost { background: transparent; color: var(--text-secondary); border: 1px solid var(--border); }
     .btn-ghost:hover { background: var(--bg-hover); color: var(--text-primary); }
     
-    /* Layout Mặc định (PC) */
-    .workspace { display: flex; flex: 1; overflow: hidden; flex-direction: column; }
+    /* Layout */
+    .workspace { display: flex; flex: 1; overflow: hidden; flex-direction: row; }
+    
+    /* Sidebar: File Explorer */
+    .sidebar { width: 220px; background: var(--bg-panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+    .sidebar-header { padding: 12px; border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); display: flex; justify-content: space-between; align-items: center; }
+    .sidebar-content { flex: 1; overflow-y: auto; padding: 8px 0; }
+    .file-item { padding: 6px 16px; font-size: 12px; font-family: var(--font-code); color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; gap: 8px; }
+    .file-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+    .file-item.active { background: rgba(0,212,255,0.1); color: var(--accent-cyan); border-left: 2px solid var(--accent-cyan); }
+    .file-icon { color: #e3b341; font-size: 14px; }
+    .action-icon { cursor: pointer; color: var(--text-secondary); transition: 0.2s; font-size: 14px; }
+    .action-icon:hover { color: var(--accent-cyan); }
+
+    /* Main Container */
     .pane-container { display: flex; flex: 1; overflow: hidden; flex-direction: row; }
     .editor-pane { display: flex; flex-direction: column; width: 50%; border-right: 1px solid var(--border); }
+    
+    /* Editor Tabs */
+    .editor-tabs { display: flex; background: var(--bg-panel); border-bottom: 1px solid var(--border); overflow-x: auto; flex-shrink: 0; }
+    .editor-tabs::-webkit-scrollbar { display: none; }
+    .tab { padding: 8px 16px; font-size: 12px; font-family: var(--font-code); color: var(--text-secondary); border-right: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; gap: 8px; background: var(--bg-base); border-top: 2px solid transparent; }
+    .tab:hover { color: var(--text-primary); }
+    .tab.active { background: var(--bg-panel-2); color: var(--text-primary); border-top-color: var(--accent-cyan); }
+    .tab-close { font-size: 10px; opacity: 0.5; padding: 2px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .tab-close:hover { opacity: 1; background: rgba(255,255,255,0.1); }
+
     .code-editor { flex: 1; position: relative; background: var(--bg-base); min-height: 200px; }
-    .output-pane { height: 200px; border-top: 1px solid var(--border); background: var(--bg-panel); display: flex; flex-direction: column; }
+    
+    /* Console */
+    .output-pane { height: 220px; border-top: 1px solid var(--border); background: var(--bg-panel); display: flex; flex-direction: column; flex-shrink: 0; }
     .output-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 14px; background: var(--bg-panel-2); border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 8px;}
     .console-split { display: flex; flex: 1; overflow: hidden; flex-direction: row; }
-    
     .output-content { flex: 1; overflow-y: auto; padding: 10px 14px; font-family: var(--font-code); font-size: 12px; color: var(--text-secondary); }
     .out-success { color: var(--accent-green); } .out-err { color: var(--accent-red); } .out-info { color: var(--accent-cyan); } .out-warn { color: #ffa500; }
     
+    /* Diagrams */
     .right-panel { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
     .viz-tabs { display: flex; align-items: center; border-bottom: 1px solid var(--border); background: var(--bg-panel); overflow-x: auto; white-space: nowrap;}
     .viz-tabs::-webkit-scrollbar { display: none; }
@@ -64,32 +91,83 @@
     .viz-container { display: none; width: 100%; height: 100%; padding: 20px; overflow: auto; }
     .viz-container.active { display: block; }
     
-    .highlighted-line { background-color: rgba(255, 200, 0, 0.2) !important; }
     .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent-green); animation: pulse 2s infinite; display: inline-block; }
     @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
 
-    /* BỐ CỤC MOBILE (Smartphone) */
+    /* =========================================
+       BỐ CỤC MOBILE (Cho phép cuộn dọc)
+       ========================================= */
     @media (max-width: 768px) {
-        body { overflow: auto; /* Cho phép cuộn toàn trang trên mobile */ }
-        html, body { height: auto; min-height: 100vh; }
-        .workspace { overflow: visible; }
+        /* Bỏ giới hạn chiều cao, bật cuộn toàn trang */
+        html, body { 
+            height: auto !important; 
+            min-height: 100vh; 
+            overflow-y: auto !important; 
+            overflow-x: hidden !important;
+            display: block !important; 
+        }
         
-        /* Xếp chồng Editor và Diagram */
-        .pane-container { flex-direction: column; overflow: visible; }
-        .editor-pane { width: 100%; border-right: none; border-bottom: 4px solid var(--bg-panel-2); height: auto; }
-        .code-editor { height: 40vh; min-height: 300px; flex: none; } /* Cố định chiều cao Editor trên mobile */
+        .workspace { 
+            display: block !important; 
+            height: auto !important; 
+            overflow: visible !important; 
+        }
         
-        .right-panel { width: 100%; height: 50vh; min-height: 400px; flex: none; }
+        /* Cây thư mục */
+        .sidebar { 
+            width: 100% !important; 
+            height: 200px !important; /* Fixed height trên mobile để không chiếm hết chỗ */
+            border-right: none !important; 
+            border-bottom: 2px solid var(--border); 
+        }
         
-        /* Xếp chồng Console Input và Output */
-        .output-pane { height: auto; flex: none; }
-        .console-split { flex-direction: column; }
-        #stdInput { height: 80px; flex: none !important; border-bottom: 1px solid var(--border) !important; border-right: none !important;}
-        .output-content { height: 120px; flex: none; }
+        .pane-container { 
+            display: block !important; 
+            height: auto !important; 
+            overflow: visible !important; 
+        }
         
-        /* Chỉnh lại Header của Console cho gọn */
-        .output-header .btn span:last-child { display: none; } /* Ẩn chữ Save, Format, Run, chỉ hiện Icon */
-        .output-header .btn { padding: 5px 8px; }
+        /* Trình soạn thảo (Editor) */
+        .editor-pane { 
+            width: 100% !important; 
+            height: auto !important; 
+            border-right: none !important; 
+            border-bottom: 4px solid var(--bg-panel-2) !important; 
+        }
+        .code-editor { 
+            height: 50vh !important; /* Chiếm 1 nửa chiều cao màn hình đt */
+            min-height: 350px !important; 
+        }
+        
+        /* Khu vực Console */
+        .output-pane { 
+            height: auto !important; 
+        }
+        .console-split { 
+            flex-direction: column !important; 
+        }
+        #stdInput { 
+            height: 80px !important; 
+            border-right: none !important; 
+            border-bottom: 1px solid var(--border) !important;
+        }
+        .output-content { 
+            height: 180px !important; 
+        }
+        
+        /* Khu vực Biểu đồ (UML/Flowchart) */
+        .right-panel { 
+            width: 100% !important; 
+            height: auto !important; 
+            min-height: 500px !important; 
+        }
+        .viz-area {
+            height: 500px !important; /* Đủ không gian để vẽ biểu đồ */
+        }
+        
+        /* Tinh chỉnh nút bấm cho gọn */
+        .output-header .btn span:last-child { display: none; }
+        .output-header .btn { padding: 6px 10px; }
     }
   </style>
 </head>
@@ -98,34 +176,43 @@
 <nav class="navbar">
   <a th:href="@{/}" class="navbar-logo">
     <div class="logo-icon">JV</div>
-    <div class="logo-text">J-<span>Viz</span></div> </a>
+    <div class="logo-text">J-<span>Workspace</span></div>
+  </a>
   <div class="navbar-divider"></div>
   <a th:href="@{/editor}" class="nav-tab active">Editor</a>
   <a th:href="@{/history}" class="nav-tab">History</a>
-  
   <div class="navbar-spacer"></div>
-  
   <a th:href="@{/profile}" class="btn btn-ghost" style="border:none;">👤 Profile</a>
-  
   <form th:action="@{/logout}" method="post" style="display:inline; margin: 0;">
       <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-      <button type="submit" class="btn btn-ghost" style="border:none;">🚪 Sign Out</button>
+      <button type="submit" class="btn btn-ghost" style="border:none;">🚪 Log out</button>
   </form>
 </nav>
 
 <div class="workspace">
+  <div class="sidebar">
+      <div class="sidebar-header">
+          EXPLORER
+          <div style="display:flex; gap: 8px;">
+              <span class="action-icon" id="newFileBtn" title="New File">➕</span>
+              <span class="action-icon" id="deleteFileBtn" title="Delete Active File">🗑️</span>
+          </div>
+      </div>
+      <div class="sidebar-content" id="fileTree"></div>
+  </div>
+
   <div class="pane-container">
-    
     <div class="editor-pane">
+      <div class="editor-tabs" id="editorTabs"></div>
       <div class="code-editor" id="editor-container"></div>
       
       <div class="output-pane">
         <div class="output-header">
             <div style="font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;">Terminal</div>
             <div style="display: flex; gap: 8px;">
-                <button class="btn btn-ghost" id="saveBtn"><span>💾</span> <span>Save</span></button>
-                <button class="btn btn-secondary" id="formatBtn"><span>⚙</span> <span>Format</span></button>
-                <button class="btn btn-primary" id="runBtn"><span>▶</span> <span>Run</span></button>
+                <button class="btn btn-ghost" id="saveBtn"><span>💾</span> <span>Save Workspace</span></button>
+                <button class="btn btn-secondary" id="formatBtn"><span>⚙</span> <span>Format All</span></button>
+                <button class="btn btn-primary" id="runBtn"><span>▶</span> <span>Run Project</span></button>
             </div>
         </div>
         <div class="console-split">
@@ -150,7 +237,6 @@
             <span class="status-dot" id="ws-status"></span> WS
         </div>
       </div>
-
       <div class="viz-area">
         <div id="uml-container" class="viz-container active">
             <p style="color: var(--text-dim); text-align: center; margin-top: 40px;">Generating UML...</p>
@@ -160,11 +246,165 @@
         </div>
       </div>
     </div>
-    
   </div>
 </div>
 
 <script th:inline="javascript">
+    /* --- WORKSPACE STATE MANAGEMENT --- */
+    let workspaceFiles = {};
+    let editorModels = {}; // Monaco Models cho Undo/Redo
+    let openTabs = [];
+    let activeFile = null;
+    let mainClass = "Main"; 
+
+    // Tự động lưu trạng thái vào trình duyệt
+    function saveLocalState() {
+        if (activeFile && editorModels[activeFile]) {
+            workspaceFiles[activeFile] = editorModels[activeFile].getValue();
+        }
+        sessionStorage.setItem('jviz_current_workspace', JSON.stringify({
+            files: workspaceFiles,
+            mainClass: mainClass,
+            openTabs: openTabs,
+            activeFile: activeFile
+        }));
+    }
+
+    // Khởi tạo dữ liệu
+    let savedData = /*[[${code}]]*/ null;
+    
+    if (savedData) {
+        try {
+            let parsed = JSON.parse(savedData);
+            if (parsed.files) {
+                workspaceFiles = parsed.files;
+                mainClass = parsed.mainClass || "Main";
+            } else workspaceFiles = { "Main.java": savedData };
+        } catch(e) { workspaceFiles = { "Main.java": savedData }; }
+        
+        openTabs = Object.keys(workspaceFiles).slice(0, 1);
+        if(openTabs.length > 0) activeFile = openTabs[0];
+        saveLocalState(); 
+        
+    } else {
+        let localState = sessionStorage.getItem('jviz_current_workspace');
+        if (localState) {
+            try {
+                let parsed = JSON.parse(localState);
+                workspaceFiles = parsed.files || {};
+                mainClass = parsed.mainClass || "Main";
+                openTabs = parsed.openTabs || [];
+                activeFile = parsed.activeFile || null;
+            } catch(e) {}
+        }
+        
+        if (Object.keys(workspaceFiles).length === 0) {
+            workspaceFiles = {
+                "Main.java": "public class Main {\n  public static void main(String[] args) {\n    System.out.println(\"Hello Workspace!\");\n  }\n}"
+            };
+            openTabs = ["Main.java"];
+            activeFile = "Main.java";
+        }
+    }
+
+    /* --- RENDERING UI --- */
+    function renderFileTree() {
+        const tree = document.getElementById('fileTree');
+        tree.innerHTML = '';
+        Object.keys(workspaceFiles).sort().forEach(filePath => {
+            const div = document.createElement('div');
+            div.className = 'file-item' + (filePath === activeFile ? ' active' : '');
+            
+            const depth = (filePath.match(/\//g) || []).length;
+            const indent = depth * 15; 
+            const displayName = filePath.split('/').pop();
+            const icon = filePath.endsWith('.java') ? '📄' : '📁';
+            
+            div.style.paddingLeft = (16 + indent) + 'px';
+            let folderInfo = depth > 0 ? `<span style="opacity:0.4; font-size:9px; margin-left:5px;">${filePath.replace('/'+displayName, '')}</span>` : '';
+            
+            div.innerHTML = `<span class="file-icon">${icon}</span> ${displayName} ${folderInfo}`;
+            div.onclick = () => openFile(filePath);
+            tree.appendChild(div);
+        });
+    }
+
+    function renderTabs() {
+        const tabs = document.getElementById('editorTabs');
+        tabs.innerHTML = '';
+        openTabs.forEach(filePath => {
+            const div = document.createElement('div');
+            div.className = 'tab' + (filePath === activeFile ? ' active' : '');
+            const displayName = filePath.split('/').pop();
+            div.innerHTML = `<span>${displayName}</span><span class="tab-close" onclick="closeTab(event, '${filePath}')">✖</span>`;
+            div.onclick = () => openFile(filePath);
+            tabs.appendChild(div);
+        });
+    }
+
+    /* --- FILE ACTIONS --- */
+    function openFile(filePath) {
+        if (!openTabs.includes(filePath)) openTabs.push(filePath);
+        activeFile = filePath;
+        
+        if(globalEditor && editorModels[filePath]) {
+            globalEditor.setModel(editorModels[filePath]);
+        }
+        
+        renderFileTree();
+        renderTabs();
+        saveLocalState(); 
+        publishCodeForDiagrams();
+    }
+
+    function closeTab(e, filePath) {
+        e.stopPropagation();
+        openTabs = openTabs.filter(t => t !== filePath);
+        if (activeFile === filePath) {
+            if (openTabs.length > 0) openFile(openTabs[openTabs.length - 1]);
+            else { activeFile = null; if(globalEditor) globalEditor.setModel(null); }
+        }
+        renderTabs();
+        saveLocalState(); 
+    }
+
+    document.getElementById('newFileBtn').addEventListener('click', () => {
+        let name = prompt("Enter file path (e.g., models/User.java):", "NewFile.java");
+        if (name && name.trim() !== '') {
+            name = name.trim();
+            if(!name.endsWith(".java")) name += ".java"; 
+            
+            if (!workspaceFiles[name]) {
+                const className = name.split('/').pop().replace('.java', '');
+                let pkg = name.includes('/') ? `package ${name.substring(0, name.lastIndexOf('/')).replace(/\//g, '.')};\n\n` : '';
+                workspaceFiles[name] = `${pkg}public class ${className} {\n    \n}`;
+                
+                editorModels[name] = monaco.editor.createModel(workspaceFiles[name], 'java', monaco.Uri.parse('file:///' + name));
+                openFile(name);
+            } else {
+                alert("File already exists!");
+                openFile(name);
+            }
+        }
+    });
+
+    document.getElementById('deleteFileBtn').addEventListener('click', () => {
+        if(!activeFile) return;
+        if(confirm(`Are you sure you want to delete ${activeFile}?`)) {
+            delete workspaceFiles[activeFile];
+            if(editorModels[activeFile]) editorModels[activeFile].dispose();
+            delete editorModels[activeFile];
+            
+            openTabs = openTabs.filter(t => t !== activeFile);
+            activeFile = openTabs.length > 0 ? openTabs[openTabs.length - 1] : null;
+            if(globalEditor) globalEditor.setModel(activeFile ? editorModels[activeFile] : null);
+            renderFileTree();
+            renderTabs();
+            saveLocalState(); 
+        }
+    });
+
+    /* --- DIAGRAMS & WEBSOCKET --- */
     mermaid.initialize({ startOnLoad: false, theme: 'dark' });
 
     async function renderDiagram(containerId, syntax) {
@@ -174,7 +414,7 @@
             const { svg } = await mermaid.render('svg-' + Date.now(), syntax);
             container.innerHTML = svg;
         } catch (e) {
-            container.innerHTML = '<p style="color: var(--text-dim); text-align: center; margin-top: 40px;">Diagram error</p>';
+            container.innerHTML = '<p style="color: var(--text-dim); text-align: center; margin-top: 40px;">Waiting for valid syntax...</p>';
         }
     }
 
@@ -192,11 +432,13 @@
     let stompClient = null;
 
     function publishCodeForDiagrams() {
-        if (!globalEditor || !stompClient || !stompClient.connected) {
-            setTimeout(() => { if (globalEditor && stompClient && stompClient.connected) publishCodeForDiagrams(); }, 500);
-            return;
-        }
-        const code = globalEditor.getValue();
+        if (!globalEditor || !stompClient || !stompClient.connected || !activeFile) return;
+        const code = editorModels[activeFile].getValue();
+        
+        const shortName = activeFile.split('/').pop();
+        document.querySelector('[data-tab="uml"]').innerText = `UML (${shortName})`;
+        document.querySelector('[data-tab="flowchart"]').innerText = `Flowchart (${shortName})`;
+        
         if (code && code.trim().length > 0) {
             stompClient.publish({ destination: '/app/code.update', body: code });
         }
@@ -216,6 +458,7 @@
     });
     stompClient.activate();
 
+    /* --- EDITOR & EXECUTION --- */
     function appendOutput(text, className = '') {
         const out = document.querySelector('.output-content');
         out.innerHTML += `<div class="${className}"><pre style="margin:0; font-family:inherit;">${text}</pre></div>`;
@@ -224,38 +467,65 @@
 
     require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' }});
     require(['vs/editor/editor.main'], function() {
-        let savedCode = /*[[${code}]]*/ null;
-        if (!savedCode) savedCode = "public class Main {\n  public static void main(String[] args) {\n    System.out.println(\"Hello J-VizAudit!\");\n  }\n}";
+        
+        Object.keys(workspaceFiles).forEach(filePath => {
+            editorModels[filePath] = monaco.editor.createModel(workspaceFiles[filePath], 'java', monaco.Uri.parse('file:///' + filePath));
+        });
 
         globalEditor = monaco.editor.create(document.getElementById('editor-container'), {
-            value: savedCode, language: 'java', theme: 'vs-dark', minimap: { enabled: false }, fontSize: 13,
-            automaticLayout: true // Đảm bảo Editor tự resize lại khi xoay màn hình điện thoại
+            model: activeFile ? editorModels[activeFile] : null,
+            language: 'java', theme: 'vs-dark', minimap: { enabled: false }, fontSize: 13, automaticLayout: true
         });
+
+        renderFileTree();
+        renderTabs();
 
         let typingTimer;
         globalEditor.onDidChangeModelContent(() => {
+            if (!activeFile) return;
+            workspaceFiles[activeFile] = editorModels[activeFile].getValue();
+            saveLocalState();
+            
             clearTimeout(typingTimer);
             typingTimer = setTimeout(publishCodeForDiagrams, 500);
         });
 
         document.getElementById('formatBtn').addEventListener('click', async () => {
-            appendOutput('▶ Formatting...', 'out-info');
-            const res = await fetch('/api/format', { method: 'POST', body: globalEditor.getValue() });
-            if(res.ok) { globalEditor.setValue(await res.text()); appendOutput('✓ Formatting complete!', 'out-success'); }
-            else appendOutput('✗ Formatting failed', 'out-err');
+            appendOutput(`▶ Formatting entire workspace...`, 'out-info');
+            let successCount = 0;
+            
+            for (let file of Object.keys(editorModels)) {
+                let code = editorModels[file].getValue();
+                const res = await fetch('/api/format', { method: 'POST', body: code });
+                if(res.ok) { 
+                    const formatted = await res.text();
+                    editorModels[file].setValue(formatted);
+                    workspaceFiles[file] = formatted;
+                    successCount++;
+                }
+            }
+            saveLocalState();
+            appendOutput(`✓ Formatting complete! (${successCount}/${Object.keys(editorModels).length} files)`, 'out-success'); 
         });
 
         document.getElementById('runBtn').addEventListener('click', async () => {
             document.querySelector('.output-content').innerHTML = '';
-            appendOutput('▶ Running...', 'out-info');
+            Object.keys(editorModels).forEach(f => workspaceFiles[f] = editorModels[f].getValue());
+            saveLocalState();
             
-            const codeVal = globalEditor.getValue();
-            const inputVal = document.getElementById('stdInput').value;
+            let userInputMain = prompt("Enter the Main class to run (e.g., 'Main' or 'com.app.Main'):", mainClass);
+            if (!userInputMain) {
+                appendOutput('⚠️ Execution cancelled.', 'out-warn');
+                return;
+            }
+            mainClass = userInputMain.trim();
+            saveLocalState(); 
+
+            appendOutput(`▶ Compiling and Running Project [Main: ${mainClass}]...`, 'out-info');
             
+            const payload = { files: workspaceFiles, mainClass: mainClass, input: document.getElementById('stdInput').value };
             const res = await fetch('/api/execute', { 
-                method: 'POST', 
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code: codeVal, input: inputVal }) 
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) 
             });
             
             if(res.ok) appendOutput(await res.text(), 'out-success');
@@ -263,13 +533,17 @@
         });
         
         document.getElementById('saveBtn').addEventListener('click', async () => {
-            const historyName = prompt('📝 Enter a name for this workspace:', 'My Code - ' + new Date().toLocaleString());
+            const historyName = prompt('📝 Enter a name for this workspace:', 'My Project - ' + new Date().toLocaleString());
             if (!historyName || !historyName.trim()) return;
+            
+            Object.keys(editorModels).forEach(f => workspaceFiles[f] = editorModels[f].getValue());
+            const workspaceData = JSON.stringify({ files: workspaceFiles, mainClass: mainClass });
+
             const res = await fetch('/api/history', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ sourceCode: globalEditor.getValue(), historyName: historyName.trim() })
+                body: JSON.stringify({ sourceCode: workspaceData, historyName: historyName.trim() })
             });
-            if(res.ok && (await res.text()).includes('Saved')) appendOutput('✅ Workspace saved!', 'out-success');
+            if(res.ok && (await res.text()).includes('Saved')) appendOutput('✅ Workspace saved to Database!', 'out-success');
             else appendOutput('✗ Failed to save', 'out-err');
         });
     });

@@ -1,48 +1,55 @@
 package com.jvizaudit.service;
+
 import org.springframework.stereotype.Service;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.file.Files;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
 public class CodeExecutionService {
-    public String runCode(String code) {
-        return runCode(code, "");
-    }
 
     public String runCode(String code, String input) {
-        try {
-            // Bước 1: Trích xuất tên class động bằng Regex
-            String className = "Main"; 
-            Matcher matcher = Pattern.compile("public\\s+class\\s+([A-Za-z0-9_]+)").matcher(code);
-            if (matcher.find()) {
-                className = matcher.group(1);
-            } else {
-                Matcher classMatcher = Pattern.compile("class\\s+([A-Za-z0-9_]+)").matcher(code);
-                if (classMatcher.find()) {
-                    className = classMatcher.group(1);
-                }
+        String className = "Main"; 
+        Matcher matcher = Pattern.compile("public\\s+class\\s+([A-Za-z0-9_]+)").matcher(code);
+        if (matcher.find()) {
+            className = matcher.group(1);
+        } else {
+            Matcher classMatcher = Pattern.compile("class\\s+([A-Za-z0-9_]+)").matcher(code);
+            if (classMatcher.find()) {
+                className = classMatcher.group(1);
             }
+        }
+        return runWorkspace(Map.of(className + ".java", code), className, input);
+    }
 
-            File temp = Files.createTempDirectory("jvizaudit").toFile();
-            File src = new File(temp, className + ".java");
-            Files.writeString(src.toPath(), code);
+    public String runWorkspace(Map<String, String> files, String mainClass, String input) {
+        try {
+            File tempDir = Files.createTempDirectory("jvizaudit_workspace").toFile();
             
-            // Bước 2: Compile
-            boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
-            ProcessBuilder compileBuilder = new ProcessBuilder();
-            compileBuilder.directory(temp);
-            compileBuilder.redirectErrorStream(true);
-            if (isWindows) {
-                compileBuilder.command("cmd.exe", "/c", "javac " + className + ".java");
-            } else {
-                compileBuilder.command("sh", "-c", "javac " + className + ".java");
+            for (Map.Entry<String, String> entry : files.entrySet()) {
+                File file = new File(tempDir, entry.getKey());
+                file.getParentFile().mkdirs();
+                Files.writeString(file.toPath(), entry.getValue());
             }
+            
+            boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
+            
+            ProcessBuilder compileBuilder = new ProcessBuilder();
+            compileBuilder.directory(tempDir);
+            compileBuilder.redirectErrorStream(true);
+            
+            if (isWindows) {
+                compileBuilder.command("cmd.exe", "/c", "dir /s /B *.java > sources.txt && javac @sources.txt");
+            } else {
+                compileBuilder.command("sh", "-c", "find . -name \"*.java\" > sources.txt && javac @sources.txt");
+            }
+            
             Process compileProcess = compileBuilder.start();
             if (!compileProcess.waitFor(10, TimeUnit.SECONDS)) {
                 return "Compilation timeout";
@@ -51,14 +58,13 @@ public class CodeExecutionService {
                 return "Compilation Error:\n" + new String(compileProcess.getInputStream().readAllBytes());
             }
             
-            // Bước 3: Run
             ProcessBuilder runBuilder = new ProcessBuilder();
-            runBuilder.directory(temp);
+            runBuilder.directory(tempDir);
             runBuilder.redirectErrorStream(true);
             if (isWindows) {
-                runBuilder.command("cmd.exe", "/c", "java " + className);
+                runBuilder.command("cmd.exe", "/c", "java " + mainClass);
             } else {
-                runBuilder.command("sh", "-c", "java " + className);
+                runBuilder.command("sh", "-c", "java " + mainClass);
             }
             Process runProcess = runBuilder.start();
 
@@ -66,12 +72,9 @@ public class CodeExecutionService {
                 try (OutputStream os = runProcess.getOutputStream();
                      BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os))) {
                     writer.write(input);
-                    if (!input.endsWith("\n")) {
-                        writer.newLine();
-                    }
+                    if (!input.endsWith("\n")) writer.newLine();
                     writer.flush();
-                } catch (Exception e) {
-                }
+                } catch (Exception e) {}
             }
 
             if (!runProcess.waitFor(5, TimeUnit.SECONDS)) {
